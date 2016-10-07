@@ -72,6 +72,26 @@ class Evolver(object):
         self._root_seq_length = 0
         self._setup_partitions()
         self._code = self.partitions[0]._root_model.code
+    
+        # Record number of each type of change, VERY LAZILY. ASSUME ONLY SINGLE CHANGES, SINCE THIS IS FOR AN AMINO ACID PROJECT!
+        self.substitution_counts = np.zeros([len(self._code), len(self._code)]) 
+
+
+
+    def compare_sequences(self, parent, child):
+        """
+            Quick function for use by SJS to count and store the number of specific substitution types from a parent to a child, across simulation.
+        """
+        for i in range(len(parent)):
+            parent_intseq = parent[i].int_seq
+            child_intseq  = child[i].int_seq
+            if parent_intseq != child_intseq:
+                # Just make symmetric from the getgo
+                self.substitution_counts[parent_intseq][child_intseq] += 1
+                self.substitution_counts[child_intseq][parent_intseq] += 1
+                
+
+
 
 
 
@@ -523,6 +543,10 @@ class Evolver(object):
                         part_new_seq.append( new_site )
                         index += 1
                 new_seq.append( part_new_seq )
+                
+                #### SUBSTITUTION COUNTS FOR AMINO ACID PROJECT ####  
+                self.compare_sequences(part_parent_seq, part_new_seq)
+        
         return new_seq
 
         
